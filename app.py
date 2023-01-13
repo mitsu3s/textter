@@ -8,6 +8,7 @@ import secrets
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///textter.db'
+app.secret_key = secrets.token_bytes(16)
 db = SQLAlchemy(app)
 
 def hash_password(password:str)->str:
@@ -103,5 +104,4 @@ def tweet():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.secret_key = secrets.token_urlsafe(32)
     app.run()
