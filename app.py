@@ -29,10 +29,10 @@ class Tweet(db.Model):
     def __repr__(self):
         return '<Tweet %r>' % self.username
 
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('login.html')
-
 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
