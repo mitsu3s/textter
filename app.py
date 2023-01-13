@@ -29,6 +29,25 @@ class Tweet(db.Model):
     def __repr__(self):
         return '<Tweet %r>' % self.username
 
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('login.html')
+
+
+@app.route('/home', methods=['GET', 'POST'])
+def home():
+    if 'username' not in session:
+        return redirect('/login')
+    if request.method == 'POST':
+        tweet = request.form['tweet']
+        tweet = Tweet(username=session['username'], text=tweet)
+        db.session.add(tweet)
+        db.session.commit()
+        
+    tweets = Tweet.query.filter_by(username=session['username']).all()
+    return render_template('home.html', tweets=tweets)
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -42,6 +61,7 @@ def register():
 
         return redirect('/login')
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -60,27 +80,12 @@ def login():
             return redirect('/')
     return render_template('login.html')
 
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect('/login')
 
-@app.route('/home', methods=['GET', 'POST'])
-def home():
-    if 'username' not in session:
-        return redirect('/login')
-    if request.method == 'POST':
-        tweet = request.form['tweet']
-        tweet = Tweet(username=session['username'], text=tweet)
-        db.session.add(tweet)
-        db.session.commit()
-        
-    tweets = Tweet.query.filter_by(username=session['username']).all()
-    return render_template('home.html', tweets=tweets)
-
-@app.route('/', methods=["GET"])
-def index():
-    return render_template('login.html')
 
 @app.route('/tweet', methods=['POST'])
 def tweet():
