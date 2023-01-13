@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import datetime
 import pytz
 import hashlib
+import secrets
 
 
 app = Flask(__name__)
@@ -102,5 +103,5 @@ def tweet():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.secret_key = 'textter'
-    app.run(debug=True)
+    app.secret_key = secrets.token_urlsafe(32)
+    app.run()
