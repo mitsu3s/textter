@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home</title>
+  </head>
+  <body>
+    <h1>Welcome, {{ session.username }}</h1>
+    <form action="/tweet" method="post">
+      <label for="tweet">Tweet:</label>
+      <input type="text" id="tweet" name="tweet" required>
+      <br><br>
+      <input type="submit" value="Tweet">
+    </form>
+    <br><br>
+    <h2>Recent Tweets</h2>
+    {% for tweet in tweets %}
+    <p>{{ tweet.username }}: {{ tweet.text }}</p>
+    <p>{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
+    {% endfor %}
+    <a href="/logout">Logout</a>
+  </body>
+</html>

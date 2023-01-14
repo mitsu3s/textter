@@ -55,13 +55,16 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        existing_user = User.query.filter_by(username=username).first()
+        if not existing_user:
 
-        password_hash = hash_password(password)
-        user = User(username=username, password=password_hash)
-        db.session.add(user)
-        db.session.commit()
+            password_hash = hash_password(password)
+            user = User(username=username, password=password_hash)
+            db.session.add(user)
+            db.session.commit()
+            session['username'] = username
 
-        return redirect('/login')
+            return redirect('/home')
     return render_template('register.html')
 
 
@@ -83,7 +86,7 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
     session.pop('username', None)
     return redirect('/login')
