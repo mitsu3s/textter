@@ -31,6 +31,22 @@ class Tweet(db.Model):
     def __repr__(self):
         return '<Tweet %r>' % self.username
 
+class Follow(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    following = db.Column(db.String(200))
+
+    def __repr__(self):
+        return '<Follow %r>' % self.username
+
+class Follower(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True)
+    follower = db.Column(db.String(200))
+
+    def __repr__(self):
+        return '<Follower %r>' % self.username
+
 
 @app.route('/', methods=['GET'])
 def index():
