@@ -4,26 +4,68 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home.css') }}">
+    <link defer rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home.css') }}">
     <title>Home</title>
 </head>
 <body>
-    <h1>Welcome, {{ session.username }}</h1>
-    <form action="/tweet" method="post">
-        <label for="tweet">Tweet:</label>
-        <input type="text" id="tweet" name="tweet" required>
-        <br><br>
-        <input type="submit" value="Tweet">
-    </form>
-    <br><br>
-    <h2>Recent Tweets</h2>
-    {% for tweet in tweets %}
-        <p>{{ tweet.username }}: {{ tweet.text }}</p>
-        <p>{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
-    {% endfor %}
-    <form action="/logout" method="post">
-        <input type="submit" value="Logout">
-    </form>
-    <!-- <a href="/logout">Logout</a> -->
+    <div class="main-container">
+        <div class="disp-tweet">
+            <h1>Welcome, {{ session.username }}</h1>
+            <form action="/tweet" method="post">
+                <label for="tweet">Tweet:</label>
+                <input type="text" id="tweet" name="tweet" required>
+                <input type="submit" value="Tweet">
+            </form>
+            <br>
+            <h2>Recent Tweets</h2>
+            {% for tweet in tweets %}
+                <p>{{ tweet.username }}: {{ tweet.text }}</p>
+                <p>{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
+            {% endfor %}
+            <br>
+            <form action="/logout" method="post">
+                <input type="submit" value="Logout">
+            </form>
+            <!-- <a href="/logout">Logout</a> -->
+        </div>
+        <div class="disp-ff">
+            <h2>Following</h2>
+            <ul>
+                {% for following in following_list %}
+                    <li>{{ following }}</li>
+                {% endfor %}
+            </ul>
+        
+            <h2>Followers</h2>
+            <ul>
+                {% for follower in follower_list %}
+                    <li>{{ follower }}</li>
+                {% endfor %}
+            </ul>
+            
+            <h3>New Follow</h3>
+            <form action="/follow" method="post">
+                <label for="following">Follow:</label>
+                <input type="text" id="following" name="following" required>
+                <input type="submit" value="Follow">
+            </form>
+            
+            <h3>Delete Follow</h3>
+            <form action="/unfollow" method="post">
+                <label for="unfollowing">Unfollow:</label>
+                <input type="text" id="unfollowing" name="unfollowing" required>
+                <input type="submit" value="Unfollow">
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,11 @@
+.main-container {
+    display: flex;
+}
+
+.disp-tweet {
+    width: calc(50%);
+}
+
+.disp-ff {
+    width: auto;
+}
