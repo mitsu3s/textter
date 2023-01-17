@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 import pytz
@@ -34,7 +34,7 @@ class Tweet(db.Model):
 class Follow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
-    following = db.Column(db.String(200))
+    following = db.Column(db.String(255))
 
     def __repr__(self):
         return '<Follow %r>' % self.username
@@ -42,7 +42,7 @@ class Follow(db.Model):
 class Follower(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True)
-    follower = db.Column(db.String(200))
+    follower = db.Column(db.String(255))
 
     def __repr__(self):
         return '<Follower %r>' % self.username
@@ -51,6 +51,74 @@ class Follower(db.Model):
 @app.route('/', methods=['GET'])
 def index():
     return render_template('login.html')
+
+
+@app.route('/follow', methods=['GET', 'POST'])
+def follow():
+    if request.method == 'POST':
+        following = request.form['following']
+        user = Follow.query.filter_by(username=session['username']).first()
+        new_follower = User.query.filter_by(username=following).first()
+
+        if new_follower and not following == session['username']:
+            if user:
+                following_list = user.following.split(',')
+                if following not in following_list:
+                    user.following += ',' + following
+                    db.session.commit()
+                else:
+                    flash('Already following')
+                    return redirect(url_for('home'))
+            else:
+                follow = Follow(username=session['username'], following=following)
+                db.session.add(follow)
+                db.session.commit()
+            follower = Follower.query.filter_by(username=following).first()
+            if follower:
+                follower.follower += ',' + session['username']
+                db.session.commit()
+            else:
+                new_follower = Follower(username=following, follower=session['username'])
+                db.session.add(new_follower)
+                db.session.commit()
+        else:
+            flash('Not Found User')
+        return redirect(url_for('home'))
+    return render_template('home.html')
+
+
+@app.route('/unfollow', methods=['GET', 'POST'])
+def unfollow():
+    if request.method == 'POST':
+        unfollowing = request.form['unfollowing']
+        user = Follow.query.filter_by(username=session['username']).first()
+        
+        if user:
+            following_list = user.following.split(',')
+            if unfollowing in following_list:
+                following_list.remove(unfollowing)
+                following_list = [i for i in following_list if i]
+                if len(following_list)>0:
+                    user.following = ','.join(following_list)
+                else:
+                    db.session.delete(user)
+                follower = Follower.query.filter_by(username=unfollowing).first()
+                if follower:
+                    follower_list = follower.follower.split(',')
+                    follower_list.remove(session['username'])
+                    follower_list = [i for i in follower_list if i]
+                    if len(follower_list)>0:
+                        follower.follower = ','.join(follower_list)
+                    else:
+                        db.session.delete(follower)
+                    db.session.commit()
+                return redirect(url_for('home'))
+            else:
+                flash('Not Found Unfollow User')
+        else:
+            flash('No one is following you')
+        return redirect(url_for('home'))
+    return render_template('home.html')
 
 
 @app.route('/home', methods=['GET', 'POST'])
