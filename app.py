@@ -36,6 +36,7 @@ class Tweet(db.Model):
 def index():
     return render_template('login.html')
 
+
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if 'username' not in session:
