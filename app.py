@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 import pytz
@@ -51,6 +51,40 @@ class Follower(db.Model):
 @app.route('/', methods=['GET'])
 def index():
     return render_template('login.html')
+
+
+@app.route('/follow', methods=['GET', 'POST'])
+def follow():
+    if request.method == 'POST':
+        following = request.form['following']
+        user = Follow.query.filter_by(username=session['username']).first()
+        new_follower = User.query.filter_by(username=following).first()
+
+        if new_follower and not following == session['username']:
+            if user:
+                following_list = user.following.split(',')
+                if following not in following_list:
+                    user.following += ',' + following
+                    db.session.commit()
+                else:
+                    flash('Already following')
+                    return redirect(url_for('home'))
+            else:
+                follow = Follow(username=session['username'], following=following)
+                db.session.add(follow)
+                db.session.commit()
+            follower = Follower.query.filter_by(username=following).first()
+            if follower:
+                follower.follower += ',' + session['username']
+                db.session.commit()
+            else:
+                new_follower = Follower(username=following, follower=session['username'])
+                db.session.add(new_follower)
+                db.session.commit()
+        else:
+            flash('Not Found User')
+        return redirect(url_for('home'))
+    return render_template('home.html')
 
 
 @app.route('/home', methods=['GET', 'POST'])
