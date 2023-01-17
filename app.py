@@ -130,9 +130,27 @@ def home():
         tweet = Tweet(username=session['username'], text=tweet)
         db.session.add(tweet)
         db.session.commit()
-        
-    tweets = Tweet.query.filter_by(username=session['username']).all()
-    return render_template('home.html', tweets=tweets)
+    
+    tweet_list = []
+    tweet_list.append(session['username'])
+
+    following = Follow.query.filter_by(username=session['username']).first()
+    if following:
+        following_list = following.following.split(',')
+        if following_list:
+            
+            tweet_list.extend(following_list)
+    else:
+        following_list = []
+    follower_list = Follower.query.filter_by(username=session['username']).first()
+    if follower_list:
+        follower_list = follower_list.follower.split(',')
+    else:
+        follower_list = []
+
+    tweets = Tweet.query.filter(Tweet.username.in_(tweet_list)).order_by(Tweet.created_at.desc()).all()
+
+    return render_template('home.html', tweets=tweets, following_list=following_list, follower_list=follower_list)
 
 
 @app.route('/register', methods=['GET', 'POST'])
