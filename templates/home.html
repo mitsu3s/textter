@@ -10,7 +10,15 @@
 <body>
     <div class="main-container">
         <div class="disp-tweet">
-            <h1>Welcome, {{ session.username }}</h1>
+            <div class="disp-user">
+                {% for user in users %}
+                    {% if user.username == session.username %}
+                        <img src="data:image/jpg;base64,{{ user.userimage }}" id="userimage">
+                    {% endif %}
+                {% endfor %}
+                <h1 id="name">{{ session.username }}</h1>
+            </div>
+            <br>
             <form action="/tweet" method="post">
                 <label for="tweet">Tweet:</label>
                 <input type="text" id="tweet" name="tweet" required>
@@ -19,8 +27,19 @@
             <br>
             <h2>Recent Tweets</h2>
             {% for tweet in tweets %}
-                <p>{{ tweet.username }}: {{ tweet.text }}</p>
-                <p>{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
+                {% for user in users %}
+                    {% if user.username == tweet.username %}
+                        <div class="usertweet">
+                            <img src="data:image/jpg;base64,{{ user.userimage }}" id="tweetimage">
+                            <p id="usertweet">{{ tweet.username }}: {{ tweet.text }}</p>
+                            <br>
+                            <p id="tweetdate">{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
+                            {% if user.username == session.username %}
+                                <a href="{{ url_for('delete_tweet', tweet_id=tweet.id) }}">･･･</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
             <br>
             <form action="/logout" method="post">
@@ -35,6 +54,7 @@
                     <li>{{ following }}</li>
                 {% endfor %}
             </ul>
+            <p>Folloing User: {{ following_list | length }}</p>
         
             <h2>Followers</h2>
             <ul>
@@ -42,6 +62,7 @@
                     <li>{{ follower }}</li>
                 {% endfor %}
             </ul>
+            <p>Follower: {{ follower_list | length }}</p>
             
             <h3>New Follow</h3>
             <form action="/follow" method="post">
