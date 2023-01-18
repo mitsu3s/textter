@@ -214,6 +214,14 @@ def tweet():
     db.session.commit()
     return redirect('/home')
 
+@app.route('/delete_tweet/<tweet_id>')
+def delete_tweet(tweet_id):
+    tweet = Tweet.query.get(tweet_id)
+    db.session.delete(tweet)
+    db.session.commit()
+    flash('Tweet deleted successfully')
+    return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     with app.app_context():
