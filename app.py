@@ -4,7 +4,9 @@ import datetime
 import pytz
 import hashlib
 import secrets
+import cv2
 import base64
+from userimage import send_image
 
 
 app = Flask(__name__)
@@ -166,13 +168,14 @@ def register():
         existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
 
+            userimage = cv2.imencode('.jpg', send_image())[1].tobytes()
             password_hash = hash_password(password)
-            user = User(username=username, password=password_hash)
+            user = User(username=username, userimage=userimage, password=password_hash)
             db.session.add(user)
             db.session.commit()
             session['username'] = username
 
-            return redirect('/home')
+            return redirect(url_for('home'))
     return render_template('register.html')
 
 
