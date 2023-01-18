@@ -4,6 +4,9 @@ import datetime
 import pytz
 import hashlib
 import secrets
+import cv2
+import base64
+from userimage import send_image
 
 
 app = Flask(__name__)
@@ -17,6 +20,7 @@ def hash_password(password:str)->str:
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    userimage = db.Column(db.LargeBinary)
     password = db.Column(db.String(80), nullable=False)
 
     def __repr__(self):
@@ -149,8 +153,11 @@ def home():
         follower_list = []
 
     tweets = Tweet.query.filter(Tweet.username.in_(tweet_list)).order_by(Tweet.created_at.desc()).all()
+    users = User.query.all()
+    for user in users:
+        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
 
-    return render_template('home.html', tweets=tweets, following_list=following_list, follower_list=follower_list)
+    return render_template('home.html', tweets=tweets, users=users, following_list=following_list, follower_list=follower_list)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -161,13 +168,14 @@ def register():
         existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
 
+            userimage = cv2.imencode('.jpg', send_image())[1].tobytes()
             password_hash = hash_password(password)
-            user = User(username=username, password=password_hash)
+            user = User(username=username, userimage=userimage, password=password_hash)
             db.session.add(user)
             db.session.commit()
             session['username'] = username
 
-            return redirect('/home')
+            return redirect(url_for('home'))
     return render_template('register.html')
 
 
@@ -205,6 +213,14 @@ def tweet():
     db.session.add(tweet)
     db.session.commit()
     return redirect('/home')
+
+@app.route('/delete_tweet/<tweet_id>')
+def delete_tweet(tweet_id):
+    tweet = Tweet.query.get(tweet_id)
+    db.session.delete(tweet)
+    db.session.commit()
+    flash('Tweet deleted successfully')
+    return redirect(url_for('home'))
 
 
 if __name__ == '__main__':

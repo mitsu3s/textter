@@ -2,6 +2,43 @@
     display: flex;
 }
 
+#name {
+    margin: 0;
+    padding: 5px;
+}
+
+#usertweet {
+    margin: 0;
+}
+
+#tweetdate {
+    margin: 0;
+    padding: 0 10px;
+}
+
+.usertweet {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    padding-left: 5px;
+}
+
+#tweetimage {
+    width: 20px;
+    height: 20px;
+    padding-right: 5px;
+}
+
+#userimage {
+    width: 50px;
+    height: 50px;
+    padding: 5px;
+}
+
+.disp-user {
+    display: flex;
+}
+
 .disp-tweet {
     width: calc(50%);
 }
