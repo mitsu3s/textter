@@ -4,6 +4,7 @@ import datetime
 import pytz
 import hashlib
 import secrets
+import base64
 
 
 app = Flask(__name__)
@@ -150,8 +151,11 @@ def home():
         follower_list = []
 
     tweets = Tweet.query.filter(Tweet.username.in_(tweet_list)).order_by(Tweet.created_at.desc()).all()
+    users = User.query.all()
+    for user in users:
+        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
 
-    return render_template('home.html', tweets=tweets, following_list=following_list, follower_list=follower_list)
+    return render_template('home.html', tweets=tweets, users=users, following_list=following_list, follower_list=follower_list)
 
 
 @app.route('/register', methods=['GET', 'POST'])
