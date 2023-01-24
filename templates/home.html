@@ -9,22 +9,39 @@
 </head>
 <body>
     <div class="main-container">
-        <div class="disp-tweet">
+        <div class="disp-user-info">
             <div class="disp-user">
-                {% for user in users %}
-                    {% if user.username == session.username %}
-                        <img src="data:image/jpg;base64,{{ user.userimage }}" id="userimage">
-                    {% endif %}
-                {% endfor %}
-                <h1 id="name">{{ session.username }}</h1>
+            {% for user in users %}
+                {% if user.username == session.username %}
+                    <img src="data:image/jpg;base64,{{ user.userimage }}" id="userimage">
+                {% endif %}
+            {% endfor %}
+            <h1 id="name">{{ session.username }}</h1>
             </div>
             <br>
-            <form action="/tweet" method="post">
-                <label for="tweet">Tweet:</label>
-                <input type="text" id="tweet" name="tweet" required>
-                <input type="submit" value="Tweet">
-            </form>
+            <div class="disp-newtweet">
+                <form action="/tweet" method="post">
+                    <label for="tweet">Tweet:</label>
+                    <input type="text" id="tweet" name="tweet" required>
+                    <input type="submit" value="Tweet">
+                </form>
+            </div>
             <br>
+            <form action="/logout" method="post">
+                <input type="submit" value="Logout">
+            </form>
+            <!-- <a href="/logout">Logout</a> -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul>
+                    {% for message in messages %}
+                        <li style="color: red;">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div class="disp-tweet">
             <h2>Recent Tweets</h2>
             {% for tweet in tweets %}
                 {% for user in users %}
@@ -33,19 +50,16 @@
                             <img src="data:image/jpg;base64,{{ user.userimage }}" id="tweetimage">
                             <p id="usertweet">{{ tweet.username }}: {{ tweet.text }}</p>
                             <br>
-                            <p id="tweetdate">{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
                             {% if user.username == session.username %}
                                 <a href="{{ url_for('delete_tweet', tweet_id=tweet.id) }}">･･･</a>
                             {% endif %}
                         </div>
+                        <div class="usertweet-date">
+                            <p id="tweetdate">{{tweet.created_at.strftime("%Y/%m/%d %H:%M")}}</p>
+                        </div>
                     {% endif %}
                 {% endfor %}
             {% endfor %}
-            <br>
-            <form action="/logout" method="post">
-                <input type="submit" value="Logout">
-            </form>
-            <!-- <a href="/logout">Logout</a> -->
         </div>
         <div class="disp-ff">
             <h2>Following</h2>
@@ -77,15 +91,6 @@
                 <input type="text" id="unfollowing" name="unfollowing" required>
                 <input type="submit" value="Unfollow">
             </form>
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
         </div>
     </div>
 </body>
