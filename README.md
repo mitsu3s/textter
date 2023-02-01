@@ -8,5 +8,5 @@
 - This program is inadequate and not complete, but in case you want to use it, please let me know (no copyright quantity, etc., but I would like to figure it out).  
 
 ## Configuration
-Flamework：Flask
-Database：SQLite
+Flamework：Flask  
+Database：SQLite  
