@@ -6,3 +6,8 @@
 - (Add) Users can now delete tweets posted by logged-in users themselves (other than those posted by users they follow).
 - This application is still under development, and due to security and incomplete source code, we recommend that you do not use this application as a reference, but rather refer to the various documents available in the world.  
 - This program is inadequate and not complete, but in case you want to use it, please let me know (no copyright quantity, etc., but I would like to figure it out).  
+
+## Flamework
+```
+Flask
+```
