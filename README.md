@@ -4,26 +4,18 @@
 
 # Features
 
-"hoge"のセールスポイントや差別化などを説明する
+- Manage Tweets by user with a login system.
 
 # Requirement
 
 - Flask 2.2.2
-
-# Installation
-
-Requirement で列挙したライブラリなどのインストール方法を説明する
-
-```bash
-pip install huga_package
-```
+- Flask-SQLAlchemy 3.0.2
+- jinja 3.1.2
+- SQLite 3.39.5
 
 # Usage
 
-DEMO の実行方法など、"hoge"の基本的な使い方を説明する
+```
+python app.py
 
-```bash
-git clone https://github.com/hoge/~
-cd examples
-python demo.py
 ```
