@@ -1,6 +1,6 @@
 # Textter
 
-- This web application is a simple tweet application created based on Twitter.
+- This web application is a simple tweeting application based on Twitter and created using Flask.
 
 # Features
 
