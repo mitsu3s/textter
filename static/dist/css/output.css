@@ -645,6 +645,18 @@ video {
   margin-top: 2rem;
 }
 
+.mt-10 {
+  margin-top: 2.5rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
 .block {
   display: block;
 }
@@ -695,6 +707,10 @@ video {
 
 .h-2\.5 {
   height: 0.625rem;
+}
+
+.h-screen {
+  height: 100vh;
 }
 
 .w-full {
@@ -749,6 +765,10 @@ video {
   max-width: 36rem;
 }
 
+.flex-1 {
+  flex: 1 1 0%;
+}
+
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
@@ -786,6 +806,22 @@ video {
   --tw-space-x-reverse: 0;
   margin-right: calc(1rem * var(--tw-space-x-reverse));
   margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
+}
+
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+}
+
+.overflow-hidden {
+  overflow: hidden;
 }
 
 .rounded-md {
@@ -832,6 +868,11 @@ video {
 .border-white {
   --tw-border-opacity: 1;
   border-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+
+.border-gray-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(229 231 235 / var(--tw-border-opacity));
 }
 
 .bg-blue-500 {
@@ -897,6 +938,11 @@ video {
 .bg-violet-900 {
   --tw-bg-opacity: 1;
   background-color: rgb(76 29 149 / var(--tw-bg-opacity));
+}
+
+.bg-gray-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--tw-bg-opacity));
 }
 
 .bg-opacity-50 {
@@ -987,6 +1033,11 @@ video {
   padding-bottom: 1rem;
 }
 
+.px-10 {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+}
+
 .pl-8 {
   padding-left: 2rem;
 }
@@ -1042,6 +1093,11 @@ video {
   line-height: 1;
 }
 
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
 .font-bold {
   font-weight: 700;
 }
@@ -1052,6 +1108,10 @@ video {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.font-extrabold {
+  font-weight: 800;
 }
 
 .uppercase {
@@ -1131,6 +1191,16 @@ video {
 
 .underline {
   text-decoration-line: underline;
+}
+
+.placeholder-gray-300::-moz-placeholder {
+  --tw-placeholder-opacity: 1;
+  color: rgb(209 213 219 / var(--tw-placeholder-opacity));
+}
+
+.placeholder-gray-300::placeholder {
+  --tw-placeholder-opacity: 1;
+  color: rgb(209 213 219 / var(--tw-placeholder-opacity));
 }
 
 .shadow-md {
@@ -1220,6 +1290,11 @@ video {
   color: rgb(29 78 216 / var(--tw-text-opacity));
 }
 
+.hover\:text-blue-500:hover {
+  --tw-text-opacity: 1;
+  color: rgb(59 130 246 / var(--tw-text-opacity));
+}
+
 .hover\:underline:hover {
   text-decoration-line: underline;
 }
@@ -1233,6 +1308,10 @@ video {
 .focus\:border-blue-500:focus {
   --tw-border-opacity: 1;
   border-color: rgb(59 130 246 / var(--tw-border-opacity));
+}
+
+.focus\:border-transparent:focus {
+  border-color: transparent;
 }
 
 .focus\:bg-blue-500:focus {
@@ -1276,12 +1355,21 @@ video {
   --tw-ring-color: rgb(76 29 149 / var(--tw-ring-opacity));
 }
 
+.focus\:ring-white:focus {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(255 255 255 / var(--tw-ring-opacity));
+}
+
 .focus\:ring-offset-2:focus {
   --tw-ring-offset-width: 2px;
 }
 
 .focus\:ring-offset-white:focus {
   --tw-ring-offset-color: #fff;
+}
+
+.focus\:ring-offset-gray-300:focus {
+  --tw-ring-offset-color: #d1d5db;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1405,8 +1493,16 @@ video {
     width: auto;
   }
 
+  .lg\:w-96 {
+    width: 24rem;
+  }
+
   .lg\:max-w-7xl {
     max-width: 80rem;
+  }
+
+  .lg\:flex-none {
+    flex: none;
   }
 
   .lg\:items-center {
@@ -1433,6 +1529,11 @@ video {
     padding-bottom: 6rem;
   }
 
+  .lg\:px-20 {
+    padding-left: 5rem;
+    padding-right: 5rem;
+  }
+
   .lg\:text-3xl {
     font-size: 1.875rem;
     line-height: 2.25rem;
@@ -1441,5 +1542,12 @@ video {
   .lg\:text-6xl {
     font-size: 3.75rem;
     line-height: 1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .xl\:px-24 {
+    padding-left: 6rem;
+    padding-right: 6rem;
   }
 }
