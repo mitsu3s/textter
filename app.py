@@ -88,7 +88,7 @@ def follow():
         else:
             flash('Not Found User')
         return redirect(url_for('home'))
-    return render_template('home.html')
+    return render_template('textter.html')
 
 
 @app.route('/unfollow', methods=['GET', 'POST'])
@@ -122,7 +122,7 @@ def unfollow():
         else:
             flash('No one is following you')
         return redirect(url_for('home'))
-    return render_template('home.html')
+    return render_template('textter.html')
 
 
 @app.route('/home', methods=['GET', 'POST'])
@@ -157,7 +157,7 @@ def home():
     for user in users:
         user.userimage = base64.b64encode(user.userimage).decode("utf-8")
 
-    return render_template('home.html', tweets=tweets, users=users, following_list=following_list, follower_list=follower_list)
+    return render_template('textter.html', tweets=tweets, users=users, following_list=following_list, follower_list=follower_list)
 
 
 @app.route('/register', methods=['GET', 'POST'])
