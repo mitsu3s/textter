@@ -200,7 +200,7 @@ def login():
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop('username', None)
-    return redirect('/login')
+    return redirect('/')
 
 
 @app.route('/tweet', methods=['POST'])
