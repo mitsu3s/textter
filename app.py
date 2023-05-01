@@ -29,6 +29,7 @@ class User(db.Model):
 class Tweet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False)
+    # title = db.Column(db.String(280), nullable=False)
     text = db.Column(db.String(280), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())
     
@@ -50,12 +51,26 @@ class Follower(db.Model):
 
     def __repr__(self):
         return '<Follower %r>' % self.username
-
+    
 
 @app.route('/', methods=['GET'])
 def index():
     return render_template('home.html')
 
+@app.route('/following', methods=['GET'])
+def f():
+    if 'username' not in session:
+        return redirect('/login')
+    following = Follow.query.filter_by(username=session['username']).first()
+    if following:
+        following_list = following.following.split(',')
+    follower_list = Follower.query.filter_by(username=session['username']).first()
+    if follower_list:
+        follower_list = follower_list.follower.split(',')
+    users = User.query.all()
+    for user in users:
+        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
+    return render_template('following.html', users=users, following_list=following_list, follower_list=follower_list)
 
 @app.route('/follow', methods=['GET', 'POST'])
 def follow():
@@ -227,4 +242,4 @@ def delete_tweet(tweet_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run()
+    app.run(debug=True)
