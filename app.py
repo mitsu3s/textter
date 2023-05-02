@@ -53,24 +53,95 @@ class Follower(db.Model):
         return '<Follower %r>' % self.username
     
 
+def get_following():
+    following = Follow.query.filter_by(username=session['username']).first()
+    if following:
+        following_list = following.following.split(',')
+    else:
+        following_list = []
+    return following_list
+
+def get_follower():
+    follower = Follower.query.filter_by(username=session['username']).first()
+    if follower:
+        follower_list = follower.follower.split(',')
+    else:
+        follower_list = []
+    return follower_list
+
+def get_user():
+    users = User.query.all()
+    for user in users:
+        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
+    return users
+
+
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('home.html')
 
+
 @app.route('/following', methods=['GET'])
-def f():
-    if 'username' not in session:
-        return redirect('/login')
-    following = Follow.query.filter_by(username=session['username']).first()
-    if following:
+def following():
+    if request.method == 'GET':
+        if 'username' not in session:
+            return redirect('/login')
+        following_list = get_following()
+        follower_list = get_follower()
+        users = get_user()
+        
+        return render_template('following.html', users=users, following_list=following_list, follower_list=follower_list)
+    else:
+        return redirect('/')
+
+
+@app.route('/delete_following/<following_id>')
+def delete_following(following_id):
+    if request.method == 'GET':
+        if 'username' not in session:
+            return redirect('/login')
+        following = Follow.query.filter_by(username=session['username']).first()
+        
         following_list = following.following.split(',')
-    follower_list = Follower.query.filter_by(username=session['username']).first()
-    if follower_list:
-        follower_list = follower_list.follower.split(',')
-    users = User.query.all()
-    for user in users:
-        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
-    return render_template('following.html', users=users, following_list=following_list, follower_list=follower_list)
+        following_list.remove(following_id)
+        following_list = [i for i in following_list if i]
+        
+        if len(following_list) > 0:
+            following.following  = ",".join(following_list)
+        else:
+            db.session.delete(following)
+
+        follower = Follower.query.filter_by(username=following_id).first()
+
+        follower_list = follower.follower.split(',')
+        follower_list.remove(session['username'])
+        follower_list = [i for i in follower_list if i]
+        if len(follower_list)>0:
+            follower.follower = ','.join(follower_list)
+        else:
+            db.session.delete(follower)
+        db.session.commit()
+
+        return redirect(url_for('home'))
+    else:
+        return redirect('/')
+
+
+
+@app.route('/follower', methods=['GET'])
+def follower():
+    if request.method == 'GET':
+        if 'username' not in session:
+            return redirect('/login')
+        following_list = get_following()
+        follower_list = get_follower()
+        users = get_user()
+        
+        return render_template('follower.html', users=users, following_list=following_list, follower_list=follower_list)
+    else:
+        return redirect('/')
+
 
 @app.route('/follow', methods=['GET', 'POST'])
 def follow():
@@ -212,22 +283,25 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.pop('username', None)
     return redirect('/')
 
 
-@app.route('/tweet', methods=['POST'])
+@app.route('/tweet', methods=['GET', 'POST'])
 def tweet():
-    if 'username' not in session:
-        return redirect('/login')
-    tweet = request.form['tweet']
-    jst = pytz.timezone('Asia/Tokyo')
-    tweet = Tweet(username=session['username'], text=tweet, created_at=datetime.datetime.now(jst))
-    db.session.add(tweet)
-    db.session.commit()
-    return redirect('/home')
+    if request.method == 'POST':
+        if 'username' not in session:
+            return redirect('/login')
+        tweet = request.form['tweet']
+        jst = pytz.timezone('Asia/Tokyo')
+        tweet = Tweet(username=session['username'], text=tweet, created_at=datetime.datetime.now(jst))
+        db.session.add(tweet)
+        db.session.commit()
+        return redirect('/home')
+    else:
+        return render_template('tweet.html')
 
 
 @app.route('/delete_tweet/<tweet_id>')
