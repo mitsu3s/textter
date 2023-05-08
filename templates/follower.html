@@ -1,231 +1,79 @@
-<!DOCTYPE html>
-<html lang="ja">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="{{url_for('static',filename='dist/output.css')}}" />
-        <title>Follower List</title>
-    </head>
-    <body>
-        <div class="flex">
-            <div
-                class="w-3/12 h-screen px-5 py-8 overflow-y-auto bg-white border-r-2 rtl:border-r-0 rtl:border-l"
-            >
-                <a href="/home" style="display: flex; align-items: center">
-                    {% for user in users %} {% if user.username == session.username %}
-                    <img
-                        class="w-12 h-12 object-contain sm:object-scale-down"
-                        src="data:image/jpg;base64,{{ user.userimage }}"
-                        id="userimage"
-                    />
-                    {% endif %} {% endfor %}
-                    <span class="ml-2 text-xl">{{ session.username }}</span>
-                </a>
-
-                <div class="flex flex-col justify-between flex-1 mt-6">
-                    <nav class="-mx-3 space-y-6">
-                        <div class="space-y-3">
-                            <label class="px-3 text-xs text-gray-500 uppercase">acquaintance</label>
-
-                            <a
-                                class="flex items-center px-3 py-2 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-gray-100 hover:text-gray-700"
-                                href="/following"
-                            >
-                                <svg
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    aria-hidden="true"
-                                    class="w-5 h-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"
-                                    ></path>
-                                </svg>
-
-                                <span class="mx-2 text-sm font-medium"
-                                    >Following: {{ following_list | length }}</span
-                                >
-                            </a>
-
-                            <a
-                                class="flex items-center px-3 py-2 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-gray-100 hover:text-gray-700"
-                                href="/follower"
-                            >
-                                <svg
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    aria-hidden="true"
-                                    class="w-5 h-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
-                                    ></path>
-                                </svg>
-
-                                <span class="mx-2 text-sm font-medium"
-                                    >Followers: {{ follower_list | length }}</span
-                                >
-                            </a>
-                        </div>
-
-                        <div class="space-y-3">
-                            <label class="px-3 text-xs text-gray-500 uppercase">tweet</label>
-
-                            <a
-                                class="flex items-center px-3 py-2 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-gray-100 hover:text-gray-700"
-                                href="/tweet"
-                            >
-                                <svg
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    aria-hidden="true"
-                                    class="w-5 h-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-                                    ></path>
-                                </svg>
-
-                                <span class="mx-2 text-sm font-medium">New Tweet</span>
-                            </a>
-                        </div>
-
-                        <div class="space-y-3">
-                            <label class="px-3 text-xs text-gray-500 uppercase"
-                                >authentication</label
-                            >
-                            <a
-                                class="flex items-center px-3 py-2 text-gray-600 transition-colors duration-300 transform rounded-lg hover:bg-gray-100 hover:text-gray-700"
-                                href="/logout"
-                            >
-                                <svg
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    aria-hidden="true"
-                                    class="w-5 h-5"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-                                    ></path>
-                                </svg>
-
-                                <span class="mx-2 text-sm font-medium">Logout</span>
-                            </a>
-                        </div>
-                    </nav>
-                </div>
-            </div>
-            <div
-                class="overflow-y-auto w-9/12"
-                aria-labelledby="modal-title"
-                role="dialog"
-                aria-modal="true"
-            >
-                <div
-                    class="flex items-end justify-center min- px-4 pt-4 pb-20 text-center sm:block sm:p-0"
-                >
-                    <div
-                        class="transition-opacity bg-gray-300 bg-opacity-75"
-                        aria-hidden="true"
-                    ></div>
-                    <span
-                        class="hidden sm:inline-block sm:align-middle sm:"
-                        aria-hidden="true"
-                    ></span>
-                    <div
-                        class="inline-block p-5 overflow-hidden text-left align-bottom transition-all transform bg-gray-100 rounded-lg shadow-2xl lg:p-16 sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
-                    >
-                        <div class="flex flex-col">
-                            <div class="-m-1.5 overflow-x-auto">
-                                <div class="p-1.5 min-w-full inline-block align-middle">
-                                    <div class="overflow-hidden">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <caption class="py-2 text-left text-sm text-gray-600">
-                                                Follower
-                                            </caption>
-                                            <thead>
-                                                <tr>
-                                                    <th
-                                                        scope="col"
-                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
-                                                    >
-                                                        Icon
-                                                    </th>
-                                                    <th
-                                                        scope="col"
-                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
-                                                    >
-                                                        Name
-                                                    </th>
-                                                    <th
-                                                        scope="col"
-                                                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
-                                                    >
-                                                        <!-- Action -->
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for follower in follower_list %}
-                                                <tr class="odd:bg-white even:bg-gray-200">
-                                                    <td
-                                                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-800"
-                                                    >
-                                                        {% for user in users %} {% if user.username
-                                                        == follower %}
-                                                        <img
-                                                            class="w-8 h-8"
-                                                            src="data:image/jpg;base64,{{ user.userimage }}"
-                                                            id="userimage"
-                                                        />
-                                                        {% endif %} {% endfor %}
-                                                    </td>
-                                                    <td
-                                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800"
-                                                    >
-                                                        {{ follower }}
-                                                    </td>
-                                                    <td
-                                                        class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                                                    >
-                                                        <!-- <a
+{%- extends "sidebar.html" %} {%- block content %}
+<div class="overflow-y-auto w-9/12" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min- px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="transition-opacity bg-gray-300 bg-opacity-75" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:" aria-hidden="true"></span>
+        <div
+            class="inline-block p-5 overflow-hidden text-left align-bottom transition-all transform bg-gray-100 rounded-lg shadow-2xl lg:p-16 sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+        >
+            <div class="flex flex-col">
+                <div class="-m-1.5 overflow-x-auto">
+                    <div class="p-1.5 min-w-full inline-block align-middle">
+                        <div class="overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <caption class="py-2 text-left text-sm text-gray-600">
+                                    Follower
+                                </caption>
+                                <thead>
+                                    <tr>
+                                        <th
+                                            scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                                        >
+                                            Icon
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                                        >
+                                            Name
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                                        >
+                                            <!-- Action -->
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for follower in follower_list %}
+                                    <tr class="odd:bg-white even:bg-gray-200">
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-800"
+                                        >
+                                            {% for user in users %} {% if user.username == follower
+                                            %}
+                                            <img
+                                                class="w-8 h-8"
+                                                src="data:image/jpg;base64,{{ user.userimage }}"
+                                                id="userimage"
+                                            />
+                                            {% endif %} {% endfor %}
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800"
+                                        >
+                                            {{ follower }}
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                                        >
+                                            <!-- <a
                                                             class="text-blue-500 hover:text-blue-700"
                                                             href="#"
                                                             >Delete</a
                                                         > -->
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </body>
-</html>
+    </div>
+</div>
+{%- endblock %}
