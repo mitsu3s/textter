@@ -330,10 +330,15 @@ def tweet():
         db.session.commit()
         return redirect("/home")
     else:
-        users = User.query.all()
-    for user in users:
-        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
-        return render_template("tweet.html", users=users)
+        following_list = get_following()
+        follower_list = get_follower()
+        users = get_user()
+    return render_template(
+        "tweet.html",
+        following_list=following_list,
+        follower_list=follower_list,
+        users=users,
+    )
 
 
 @app.route("/delete_tweet/<tweet_id>")
