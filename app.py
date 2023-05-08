@@ -190,7 +190,7 @@ def follow():
                 db.session.commit()
         else:
             flash("Not Found User")
-        return redirect(url_for("home"))
+        return redirect(url_for("following"))
     return render_template("textter.html")
 
 
