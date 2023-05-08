@@ -32,7 +32,7 @@ class User(db.Model):
 class Tweet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False)
-    # title = db.Column(db.String(280), nullable=False)
+    title = db.Column(db.String(280), nullable=False)
     text = db.Column(db.String(280), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())
 
@@ -86,76 +86,6 @@ def get_user():
 @app.route("/", methods=["GET"])
 def index():
     return render_template("home.html")
-
-
-@app.route("/following", methods=["GET"])
-def following():
-    if request.method == "GET":
-        if "username" not in session:
-            return redirect("/login")
-        following_list = get_following()
-        follower_list = get_follower()
-        users = get_user()
-
-        return render_template(
-            "following.html",
-            users=users,
-            following_list=following_list,
-            follower_list=follower_list,
-        )
-    else:
-        return redirect("/")
-
-
-@app.route("/delete_following/<following_id>")
-def delete_following(following_id):
-    if request.method == "GET":
-        if "username" not in session:
-            return redirect("/login")
-        following = Follow.query.filter_by(username=session["username"]).first()
-
-        following_list = following.following.split(",")
-        following_list.remove(following_id)
-        following_list = [i for i in following_list if i]
-
-        if len(following_list) > 0:
-            following.following = ",".join(following_list)
-        else:
-            db.session.delete(following)
-
-        follower = Follower.query.filter_by(username=following_id).first()
-
-        follower_list = follower.follower.split(",")
-        follower_list.remove(session["username"])
-        follower_list = [i for i in follower_list if i]
-        if len(follower_list) > 0:
-            follower.follower = ",".join(follower_list)
-        else:
-            db.session.delete(follower)
-        db.session.commit()
-
-        return redirect(url_for("home"))
-    else:
-        return redirect("/")
-
-
-@app.route("/follower", methods=["GET"])
-def follower():
-    if request.method == "GET":
-        if "username" not in session:
-            return redirect("/login")
-        following_list = get_following()
-        follower_list = get_follower()
-        users = get_user()
-
-        return render_template(
-            "follower.html",
-            users=users,
-            following_list=following_list,
-            follower_list=follower_list,
-        )
-    else:
-        return redirect("/")
 
 
 @app.route("/follow", methods=["GET", "POST"])
@@ -234,7 +164,8 @@ def home():
         return redirect("/login")
     if request.method == "POST":
         tweet = request.form["tweet"]
-        tweet = Tweet(username=session["username"], text=tweet)
+        title = request.form["title"]
+        tweet = Tweet(username=session["username"], text=tweet, title=title)
         db.session.add(tweet)
         db.session.commit()
 
@@ -320,9 +251,11 @@ def tweet():
         if "username" not in session:
             return redirect("/login")
         tweet = request.form["tweet"]
+        title = request.form["title"]
         jst = pytz.timezone("Asia/Tokyo")
         tweet = Tweet(
             username=session["username"],
+            title=title,
             text=tweet,
             created_at=datetime.datetime.now(jst),
         )
@@ -348,6 +281,76 @@ def delete_tweet(tweet_id):
     db.session.commit()
     flash("Tweet deleted successfully")
     return redirect(url_for("home"))
+
+
+@app.route("/following", methods=["GET"])
+def following():
+    if request.method == "GET":
+        if "username" not in session:
+            return redirect("/login")
+        following_list = get_following()
+        follower_list = get_follower()
+        users = get_user()
+
+        return render_template(
+            "following.html",
+            users=users,
+            following_list=following_list,
+            follower_list=follower_list,
+        )
+    else:
+        return redirect("/")
+
+
+@app.route("/delete_following/<following_id>")
+def delete_following(following_id):
+    if request.method == "GET":
+        if "username" not in session:
+            return redirect("/login")
+        following = Follow.query.filter_by(username=session["username"]).first()
+
+        following_list = following.following.split(",")
+        following_list.remove(following_id)
+        following_list = [i for i in following_list if i]
+
+        if len(following_list) > 0:
+            following.following = ",".join(following_list)
+        else:
+            db.session.delete(following)
+
+        follower = Follower.query.filter_by(username=following_id).first()
+
+        follower_list = follower.follower.split(",")
+        follower_list.remove(session["username"])
+        follower_list = [i for i in follower_list if i]
+        if len(follower_list) > 0:
+            follower.follower = ",".join(follower_list)
+        else:
+            db.session.delete(follower)
+        db.session.commit()
+
+        return redirect(url_for("home"))
+    else:
+        return redirect("/")
+
+
+@app.route("/follower", methods=["GET"])
+def follower():
+    if request.method == "GET":
+        if "username" not in session:
+            return redirect("/login")
+        following_list = get_following()
+        follower_list = get_follower()
+        users = get_user()
+
+        return render_template(
+            "follower.html",
+            users=users,
+            following_list=following_list,
+            follower_list=follower_list,
+        )
+    else:
+        return redirect("/")
 
 
 if __name__ == "__main__":
