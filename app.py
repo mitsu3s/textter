@@ -32,7 +32,7 @@ class User(db.Model):
 class Tweet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False)
-    # title = db.Column(db.String(280), nullable=False)
+    title = db.Column(db.String(280), nullable=False)
     text = db.Column(db.String(280), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now())
 
@@ -234,7 +234,8 @@ def home():
         return redirect("/login")
     if request.method == "POST":
         tweet = request.form["tweet"]
-        tweet = Tweet(username=session["username"], text=tweet)
+        title = request.form["title"]
+        tweet = Tweet(username=session["username"], text=tweet, title=title)
         db.session.add(tweet)
         db.session.commit()
 
@@ -320,9 +321,11 @@ def tweet():
         if "username" not in session:
             return redirect("/login")
         tweet = request.form["tweet"]
+        title = request.form["title"]
         jst = pytz.timezone("Asia/Tokyo")
         tweet = Tweet(
             username=session["username"],
+            title=title,
             text=tweet,
             created_at=datetime.datetime.now(jst),
         )
