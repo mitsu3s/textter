@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, session, redirect, url_for, flash
+from flask import (
+    Flask,
+    render_template,
+    request,
+    session,
+    redirect,
+    url_for,
+    flash,
+    make_response,
+)
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 import pytz
@@ -208,6 +217,7 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        remember = request.form.get("remember-me") == "on"
         existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
             userimage = cv2.imencode(".jpg", send_image())[1].tobytes()
@@ -217,7 +227,12 @@ def register():
             db.session.commit()
             session["username"] = username
 
-            return redirect(url_for("home"))
+            if remember:
+                response = make_response(redirect("/home"))
+                response.set_cookie("username", username, max_age=60 * 60 * 24)
+                return response
+            else:
+                return redirect("/home")
     return render_template("register.html")
 
 
@@ -226,23 +241,35 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        remember = request.form.get("remember-me") == "on"
         password_hash = hash_password(password)
         user = User.query.filter_by(username=username).first()
         if user:
             if password_hash == user.password:
                 session["username"] = username
-                return redirect("/home")
+                if remember:
+                    response = make_response(redirect("/home"))
+                    response.set_cookie("username", username, max_age=60 * 60 * 24)
+                    return response
+                else:
+                    return redirect("/home")
             else:
                 return redirect("/")
         else:
             return redirect("/")
+    elif request.method == "GET" and request.cookies.get("username"):
+        session["username"] = request.cookies.get("username")
+        return redirect("/home")
+
     return render_template("login.html")
 
 
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
     session.pop("username", None)
-    return redirect("/")
+    response = make_response(redirect("/"))
+    response.set_cookie("username", "", max_age=0)
+    return response
 
 
 @app.route("/tweet", methods=["GET", "POST"])
