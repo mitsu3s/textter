@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="{{url_for('static',filename='dist/output.css')}}" />
+        <title>Textter</title>
+    </head>
+    <body>
+        <div class="flex">
+            {%- include "components/sidebar.html" %}
+            <div
+                class="overflow-y-auto w-9/12"
+                aria-labelledby="modal-title"
+                role="dialog"
+                aria-modal="true"
+            >
+                <div
+                    class="flex items-end justify-center min- px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+                >
+                    <div
+                        class="transition-opacity bg-gray-300 bg-opacity-75"
+                        aria-hidden="true"
+                    ></div>
+                    <span
+                        class="hidden sm:inline-block sm:align-middle sm:"
+                        aria-hidden="true"
+                    ></span>
+                    <div
+                        class="inline-block p-5 overflow-hidden text-left align-bottom transition-all transform bg-gray-100 rounded-lg shadow-2xl lg:p-16 sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+                    >
+                        <div class="flex flex-col">{%- block modal_content %} {% endblock %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
