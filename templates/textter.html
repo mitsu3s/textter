@@ -1,4 +1,4 @@
-{%- extends "/inheritance/sidebar.html" %} {%- block content %}
+{%- extends "components/sidebar.html" %} {%- block content %}
 <div class="p-0 md:px-24">
     <div class="grid grid-cols-1 gap-4 lg:gap-4 lg:grid-cols-1">
         {% for tweet in tweets %} {% for user in users %} {% if user.username == tweet.username %}
