@@ -101,7 +101,7 @@ def index():
 @app.route("/follow", methods=["GET", "POST"])
 def follow():
     if request.method == "POST":
-        following = request.form["following"]
+        following = html.escape(request.form["following"])
         user = Follow.query.filter_by(username=session["username"]).first()
         new_follower = User.query.filter_by(username=following).first()
 
@@ -131,40 +131,6 @@ def follow():
         else:
             flash("Not Found User")
         return redirect(url_for("following"))
-    return render_template("textter.html")
-
-
-@app.route("/unfollow", methods=["GET", "POST"])
-def unfollow():
-    if request.method == "POST":
-        unfollowing = request.form["unfollowing"]
-        user = Follow.query.filter_by(username=session["username"]).first()
-
-        if user:
-            following_list = user.following.split(",")
-            if unfollowing in following_list:
-                following_list.remove(unfollowing)
-                following_list = [i for i in following_list if i]
-                if len(following_list) > 0:
-                    user.following = ",".join(following_list)
-                else:
-                    db.session.delete(user)
-                follower = Follower.query.filter_by(username=unfollowing).first()
-                if follower:
-                    follower_list = follower.follower.split(",")
-                    follower_list.remove(session["username"])
-                    follower_list = [i for i in follower_list if i]
-                    if len(follower_list) > 0:
-                        follower.follower = ",".join(follower_list)
-                    else:
-                        db.session.delete(follower)
-                    db.session.commit()
-                return redirect(url_for("home"))
-            else:
-                flash("Not Found Unfollow User")
-        else:
-            flash("No one is following you")
-        return redirect(url_for("home"))
     return render_template("textter.html")
 
 
@@ -278,8 +244,8 @@ def tweet():
     if request.method == "POST":
         if "username" not in session:
             return redirect("/login")
-        tweet = request.form["tweet"]
-        title = request.form["title"]
+        tweet = html.escape(request.form["tweet"])
+        title = html.escape(request.form["title"])
         jst = pytz.timezone("Asia/Tokyo")
         tweet = Tweet(
             username=session["username"],
