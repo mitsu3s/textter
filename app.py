@@ -137,7 +137,7 @@ def follow():
 @app.route("/home", methods=["GET", "POST"])
 def home():
     if "username" not in session:
-        return redirect("/login")
+        return redirect(url_for("login"))
     if request.method == "POST":
         tweet = request.form["tweet"]
         title = request.form["title"]
@@ -199,7 +199,7 @@ def register():
                 response.set_cookie("username", username, max_age=60 * 60 * 24)
                 return response
             else:
-                return redirect("/home")
+                return redirect(url_for("home"))
     return render_template("register.html")
 
 
@@ -219,15 +219,14 @@ def login():
                     response.set_cookie("username", username, max_age=60 * 60 * 24)
                     return response
                 else:
-                    return redirect("/home")
+                    return redirect(url_for("home"))
             else:
                 return redirect("/")
         else:
             return redirect("/")
     elif request.method == "GET" and request.cookies.get("username"):
         session["username"] = request.cookies.get("username")
-        return redirect("/home")
-
+        return redirect(url_for("home"))
     return render_template("login.html")
 
 
@@ -243,9 +242,9 @@ def logout():
 def tweet():
     if request.method == "POST":
         if "username" not in session:
-            return redirect("/login")
-        tweet = html.escape(request.form["tweet"])
-        title = html.escape(request.form["title"])
+            return redirect(url_for("login"))
+        tweet = request.form["tweet"]
+        title = request.form["title"]
         jst = pytz.timezone("Asia/Tokyo")
         tweet = Tweet(
             username=session["username"],
@@ -255,7 +254,7 @@ def tweet():
         )
         db.session.add(tweet)
         db.session.commit()
-        return redirect("/home")
+        return redirect(url_for("home"))
     else:
         following_list = get_following()
         follower_list = get_follower()
@@ -281,7 +280,7 @@ def delete_tweet(tweet_id):
 def following():
     if request.method == "GET":
         if "username" not in session:
-            return redirect("/login")
+            return redirect(url_for("login"))
         following_list = get_following()
         follower_list = get_follower()
         users = get_user()
@@ -300,7 +299,7 @@ def following():
 def delete_following(following_id):
     if request.method == "GET":
         if "username" not in session:
-            return redirect("/login")
+            return redirect(url_for("login"))
         following = Follow.query.filter_by(username=session["username"]).first()
 
         following_list = following.following.split(",")
@@ -332,7 +331,7 @@ def delete_following(following_id):
 def follower():
     if request.method == "GET":
         if "username" not in session:
-            return redirect("/login")
+            return redirect(url_for("login"))
         following_list = get_following()
         follower_list = get_follower()
         users = get_user()
