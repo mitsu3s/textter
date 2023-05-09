@@ -15,6 +15,7 @@ import hashlib
 import secrets
 import cv2
 import base64
+import html
 from userimage import send_image
 
 
@@ -215,8 +216,8 @@ def home():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = html.escape(request.form["username"])
+        password = html.escape(request.form["password"])
         remember = request.form.get("remember-me") == "on"
         existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
@@ -239,8 +240,8 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = html.escape(request.form["username"])
+        password = html.escape(request.form["password"])
         remember = request.form.get("remember-me") == "on"
         password_hash = hash_password(password)
         user = User.query.filter_by(username=username).first()
