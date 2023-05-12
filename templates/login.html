@@ -1,3 +1,3 @@
 {%- extends "components/auth.html" %} {%- block title %} Sign in. {%- endblock %} {%- block form %}
 {% with method = 'login', other_method = 'register', announce = 'Need', preposition = 'in' %} {%-
-include "components/input.html" %} {% endwith %} {%- endblock %}
+include "components/auth-input.html" %} {% endwith %} {%- endblock %}
