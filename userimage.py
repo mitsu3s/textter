@@ -2,80 +2,73 @@ import numpy as np
 import hashlib
 import random
 
-size = 420 #　Image Size
-pixel = 70 #　Size of 1 pixel
-frame = 35 #　Margin Size
-background = 240 #　Background color (0-255)
+size = 420
+pixel = 70
+frame = 35
+background = 240
+
 
 def create_pattern(hash_value):
-    pat = np.array([int(hash,16)%2 for hash in hash_value[:15]])
-    pat = pat.reshape(3,5).T
-    pat = np.append(pat[:,-1:0:-1], pat, axis=1)
-    return pat
+    pattern = np.array([int(hash, 16) % 2 for hash in hash_value[:15]])
+    pattern = pattern.reshape(3, 5).T
+    pattern = np.append(pattern[:, -1:0:-1], pattern, axis=1)
+    return pattern
+
 
 def create_color(hash_value):
-    hue = ''
-    for i in range(3): hue += hash_value[25+i]
-    hue = int(hue,16) / 4095 * 360
-    sat = ''
-    for i in range(2): sat += hash_value[28+i]
-    sat = 65 - int(sat,16) / 255 * 20
-    lum = ''
-    for i in range(2): lum += hash_value[30+i]
-    lum = 75 - int(lum,16) / 255 * 20
+    hue = int(hash_value[25:28], 16) / 4095 * 360
+    sat = 65 - int(hash_value[28:30], 16) / 255 * 20
+    lum = 75 - int(hash_value[30:32], 16) / 255 * 20
 
     if lum < 50:
-        max = 2.55 * (lum + lum * (sat/100))
-        min = 2.55 * (lum - lum * (sat/100))
-    elif lum >= 50:
-        max = 2.55 * (lum + (100-lum) * (sat/100))
-        min = 2.55 * (lum - (100-lum) * (sat/100))
+        max_val = 2.55 * (lum + lum * (sat / 100))
+        min_val = 2.55 * (lum - lum * (sat / 100))
+    else:
+        max_val = 2.55 * (lum + (100 - lum) * (sat / 100))
+        min_val = 2.55 * (lum - (100 - lum) * (sat / 100))
+
+    hue_interval = hue / 60
+    x = (max_val - min_val) * (1 - abs(hue_interval % 2 - 1))
 
     if 0 <= hue < 60:
-        red   = max
-        green = (hue/60) * (max-min) + min
-        blue  = min
+        red, green, blue = max_val, x + min_val, min_val
     elif 60 <= hue < 120:
-        red   = ((120-hue)/60) * (max-min) + min
-        green = max
-        blue  = min
+        red, green, blue = x + min_val, max_val, min_val
     elif 120 <= hue < 180:
-        red   = min
-        green = max
-        blue  = ((hue-120)/60) * (max-min) + min
+        red, green, blue = min_val, max_val, x + min_val
     elif 180 <= hue < 240:
-        red   = min
-        green = ((240-hue)/60) * (max-min) + min
-        blue  = max
+        red, green, blue = min_val, x + min_val, max_val
     elif 240 <= hue < 300:
-        red   = ((hue-240)/60) * (max-min) + min
-        green = min
-        blue  = max
-    elif 300 <= hue <= 360:
-        red   = max
-        green = min
-        blue  = ((360-hue)/60) * (max-min) + min
-    return [red,green,blue]
+        red, green, blue = x + min_val, min_val, max_val
+    else:
+        red, green, blue = max_val, min_val, x + min_val
+
+    return [red, green, blue]
+
 
 def create_image(pattern, colors):
-    image = np.full([size,size,3],background)
+    image = np.full([size, size, 3], background)
 
     for i in range(5):
         for j in range(5):
-                for k in range(pixel):
-                    for l in range(pixel):
-                        if pattern[i][j] == 0:
-                            image[frame+i*pixel+k][frame+j*pixel+l][0] = colors[2]
-                            image[frame+i*pixel+k][frame+j*pixel+l][1] = colors[1]
-                            image[frame+i*pixel+k][frame+j*pixel+l][2] = colors[0]
-                        elif pattern[i][j] == 1:
-                            image[frame+i*pixel+k][frame+j*pixel+l][:] = background
+            for k in range(pixel):
+                for l in range(pixel):
+                    pixel_value = image[frame + i * pixel + k][frame + j * pixel + l]
+                    if pattern[i][j] == 0:
+                        pixel_value[0], pixel_value[1], pixel_value[2] = (
+                            colors[2],
+                            colors[1],
+                            colors[0],
+                        )
+                    elif pattern[i][j] == 1:
+                        pixel_value[:] = background
     return image
 
+
 def send_image():
-    myid = str(random.randrange(10**7,10**8))
+    myid = str(random.randrange(10**7, 10**8))
     hash_value = hashlib.md5(myid.encode()).hexdigest()
-    pat = create_pattern(hash_value)
-    colors = create_color(hash_value)
-    image = create_image(pat, colors)
+    pattern = create_pattern(hash_value)
+    color = create_color(hash_value)
+    image = create_image(pattern, color)
     return image
