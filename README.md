@@ -12,11 +12,14 @@
 
 ## Requirement
 
--   Flask 2.2.2
--   Flask-SQLAlchemy 3.0.2
--   jinja2 3.1.2
--   SQLite 3.39.5
--   TailwindCSS 3.3.1
+| Language/FrameWork | Version |
+| :----------------- | ------: |
+| Python             |  3.10.6 |
+| Flask              |   2.2.2 |
+| Flask-SQLAlchemy   |   3.0.2 |
+| jinja2             |   3.1.2 |
+| SQLite             |  3.39.5 |
+| TailwindCSS        |   3.3.1 |
 
 ## Usage
 
