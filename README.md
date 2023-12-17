@@ -1,8 +1,8 @@
-## Textter
+# Textter
 
 -   A simple tweeting application modeled after X (Twitter).
 
-## Features
+## Description
 
 -   A login system manages and displays tweets for each user.
 -   As soon as a user is created, a user image is generated and displayed next to the tweet.
