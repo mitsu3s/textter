@@ -29,6 +29,18 @@
         </div>
     </div>
 
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+    <div>
+        {% for category, message in messages %}
+        <p
+            class="text-lg font-bold {% if category == 'success' %} text-green-500 {% elif category == 'error' %} text-red-500 {% else %} text-gray-500 {% endif %}"
+        >
+            {{ message }}
+        </p>
+        {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
     <div class="flex items-center justify-between">
         <div class="flex items-center">
             <input
