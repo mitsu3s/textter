@@ -1,3 +1,10 @@
+import datetime
+import pytz
+import hashlib
+import secrets
+import cv2
+import base64
+
 from flask import (
     Flask,
     render_template,
@@ -7,16 +14,10 @@ from flask import (
     url_for,
     flash,
     make_response,
+    get_flashed_messages,
 )
 from flask_sqlalchemy import SQLAlchemy
-import datetime
-import pytz
-import hashlib
-import secrets
-import cv2
-import base64
 from userimage import send_image
-
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///textter.db"
@@ -24,158 +25,100 @@ app.secret_key = secrets.token_bytes(16)
 db = SQLAlchemy(app)
 
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-
 class User(db.Model):
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     userimage = db.Column(db.LargeBinary)
-    password = db.Column(db.String(80), nullable=False)
+    password_hash = db.Column(db.String(64), nullable=False)
+
+    tweets = db.relationship("Tweet", back_populates="user", cascade="all, delete-orphan", lazy=True)
+
+    following = db.relationship(
+        "Follow",
+        foreign_keys="Follow.follower_id",
+        back_populates="follower",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+
+    followers = db.relationship(
+        "Follow",
+        foreign_keys="Follow.followed_id",
+        back_populates="followed",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
 
     def __repr__(self):
-        return "<User %r>" % self.username
+        return f"<User {self.username}>"
 
 
 class Tweet(db.Model):
+    __tablename__ = "tweets"
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(280), nullable=False)
     text = db.Column(db.String(280), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.now())
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    user = db.relationship("User", back_populates="tweets")
 
     def __repr__(self):
-        return "<Tweet %r>" % self.username
+        return f"<Tweet id={self.id} user_id={self.user_id}>"
 
 
 class Follow(db.Model):
+    __tablename__ = "follows"
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    following = db.Column(db.String(255))
+    follower_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    followed_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    follower = db.relationship("User", foreign_keys=[follower_id], back_populates="following")
+    followed = db.relationship("User", foreign_keys=[followed_id], back_populates="followers")
 
     def __repr__(self):
-        return "<Follow %r>" % self.username
+        return f"<Follow follower={self.follower_id} -> followed={self.followed_id}>"
 
 
-class Follower(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True)
-    follower = db.Column(db.String(255))
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
 
-    def __repr__(self):
-        return "<Follower %r>" % self.username
+def get_current_user():
+    if "username" not in session:
+        return None
+    return User.query.filter_by(username=session["username"]).first()
 
+def get_following(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return []
+    return [f.followed for f in user.following]
 
-def get_following():
-    following = Follow.query.filter_by(username=session["username"]).first()
-    if following:
-        following_list = following.following.split(",")
-    else:
-        following_list = []
-    return following_list
+def get_follower(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return []
+    return [f.follower for f in user.followers]
 
-
-def get_follower():
-    follower = Follower.query.filter_by(username=session["username"]).first()
-    if follower:
-        follower_list = follower.follower.split(",")
-    else:
-        follower_list = []
-    return follower_list
-
-
-def get_user():
+def get_all_users_base64():
     users = User.query.all()
-    for user in users:
-        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
+    for u in users:
+        if u.userimage:
+            u.userimage = base64.b64encode(u.userimage).decode("utf-8")
+        else:
+            u.userimage = ""
     return users
 
 
 @app.route("/", methods=["GET"])
 def index():
+    session.pop('_flashes', None)
     return render_template("home.html")
-
-
-@app.route("/follow", methods=["GET", "POST"])
-def follow():
-    if request.method == "POST":
-        following = request.form["following"]
-        user = Follow.query.filter_by(username=session["username"]).first()
-        new_follower = User.query.filter_by(username=following).first()
-
-        if new_follower and not following == session["username"]:
-            if user:
-                following_list = user.following.split(",")
-                if following not in following_list:
-                    user.following += "," + following
-                    db.session.commit()
-                else:
-                    flash("Already following")
-                    return redirect(url_for("home"))
-            else:
-                follow = Follow(username=session["username"], following=following)
-                db.session.add(follow)
-                db.session.commit()
-            follower = Follower.query.filter_by(username=following).first()
-            if follower:
-                follower.follower += "," + session["username"]
-                db.session.commit()
-            else:
-                new_follower = Follower(
-                    username=following, follower=session["username"]
-                )
-                db.session.add(new_follower)
-                db.session.commit()
-        else:
-            flash("Not Found User")
-        return redirect(url_for("following"))
-    return render_template("textter.html")
-
-
-@app.route("/home", methods=["GET", "POST"])
-def home():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    if request.method == "POST":
-        tweet = request.form["tweet"]
-        title = request.form["title"]
-        tweet = Tweet(username=session["username"], text=tweet, title=title)
-        db.session.add(tweet)
-        db.session.commit()
-
-    tweet_list = []
-    tweet_list.append(session["username"])
-
-    following = Follow.query.filter_by(username=session["username"]).first()
-    if following:
-        following_list = following.following.split(",")
-        if following_list:
-            tweet_list.extend(following_list)
-    else:
-        following_list = []
-    follower_list = Follower.query.filter_by(username=session["username"]).first()
-    if follower_list:
-        follower_list = follower_list.follower.split(",")
-    else:
-        follower_list = []
-
-    tweets = (
-        Tweet.query.filter(Tweet.username.in_(tweet_list))
-        .order_by(Tweet.created_at.desc())
-        .all()
-    )
-    users = User.query.all()
-    for user in users:
-        user.userimage = base64.b64encode(user.userimage).decode("utf-8")
-
-    return render_template(
-        "textter.html",
-        tweets=tweets,
-        users=users,
-        following_list=following_list,
-        follower_list=follower_list,
-    )
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -184,21 +127,30 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         remember = request.form.get("remember-me") == "on"
-        existing_user = User.query.filter_by(username=username).first()
-        if not existing_user:
-            userimage = cv2.imencode(".jpg", send_image())[1].tobytes()
-            password_hash = hash_password(password)
-            user = User(username=username, userimage=userimage, password=password_hash)
-            db.session.add(user)
-            db.session.commit()
-            session["username"] = username
 
-            if remember:
-                response = make_response(redirect("/home"))
-                response.set_cookie("username", username, max_age=60 * 60 * 24)
-                return response
-            else:
-                return redirect(url_for("home"))
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash("Username already taken", "error")
+            return redirect(url_for("register"))
+
+        userimage = cv2.imencode(".jpg", send_image())[1].tobytes()
+
+        user = User(
+            username=username,
+            userimage=userimage,
+            password_hash=hash_password(password)
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        session["username"] = username
+        if remember:
+            response = make_response(redirect(url_for("home")))
+            response.set_cookie("username", username, max_age=60 * 60 * 24)
+            return response
+        else:
+            return redirect(url_for("home"))
+        
     return render_template("register.html")
 
 
@@ -208,28 +160,28 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         remember = request.form.get("remember-me") == "on"
-        password_hash = hash_password(password)
+
         user = User.query.filter_by(username=username).first()
-        if user:
-            if password_hash == user.password:
-                session["username"] = username
-                if remember:
-                    response = make_response(redirect("/home"))
-                    response.set_cookie("username", username, max_age=60 * 60 * 24)
-                    return response
-                else:
-                    return redirect(url_for("home"))
+        if user and user.password_hash == hash_password(password):
+            session["username"] = username
+            if remember:
+                response = make_response(redirect(url_for("home")))
+                response.set_cookie("username", username, max_age=60 * 60 * 24)
+                return response
             else:
-                return redirect("/")
+                return redirect(url_for("home"))
         else:
-            return redirect("/")
-    elif request.method == "GET" and request.cookies.get("username"):
+            flash("Invalid username or password", "error")
+            return redirect(url_for("login"))
+
+    if request.method == "GET" and request.cookies.get("username"):
         session["username"] = request.cookies.get("username")
         return redirect(url_for("home"))
+    
     return render_template("login.html")
 
 
-@app.route("/logout", methods=["GET", "POST"])
+@app.route("/logout", methods=["GET"])
 def logout():
     session.pop("username", None)
     response = make_response(redirect("/"))
@@ -237,116 +189,187 @@ def logout():
     return response
 
 
-@app.route("/tweet", methods=["GET", "POST"])
-def tweet():
+@app.route("/home", methods=["GET", "POST"])
+def home():
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
+
     if request.method == "POST":
-        if "username" not in session:
-            return redirect(url_for("login"))
-        tweet = request.form["tweet"]
+        tweet_text = request.form["tweet"]
         title = request.form["title"]
         jst = pytz.timezone("Asia/Tokyo")
-        tweet = Tweet(
-            username=session["username"],
+        new_tweet = Tweet(
+            user_id=current_user.id,
             title=title,
-            text=tweet,
+            text=tweet_text,
             created_at=datetime.datetime.now(jst),
         )
-        db.session.add(tweet)
+        db.session.add(new_tweet)
         db.session.commit()
         return redirect(url_for("home"))
-    else:
-        following_list = get_following()
-        follower_list = get_follower()
-        users = get_user()
+
+    following_users = get_following(current_user.id)
+    follower_users = get_follower(current_user.id)
+
+    user_ids = [current_user.id] + [u.id for u in following_users]
+    tweets = (
+        Tweet.query
+        .filter(Tweet.user_id.in_(user_ids))
+        .order_by(Tweet.created_at.desc())
+        .all()
+    )
+
+    users_base64 = get_all_users_base64()
+
     return render_template(
-        "tweet.html",
-        following_list=following_list,
-        follower_list=follower_list,
-        users=users,
+        "textter.html",
+        tweets=tweets,
+        users=users_base64,
+        following_list=[u.username for u in following_users],
+        follower_list=[u.username for u in follower_users],
     )
 
 
-@app.route("/delete_tweet/<tweet_id>")
+@app.route("/tweet", methods=["GET", "POST"])
+def tweet():
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        title = request.form["title"]
+        tweet_text = request.form["tweet"]
+        jst = pytz.timezone("Asia/Tokyo")
+        new_tweet = Tweet(
+            user_id=current_user.id,
+            title=title,
+            text=tweet_text,
+            created_at=datetime.datetime.now(jst),
+        )
+        db.session.add(new_tweet)
+        db.session.commit()
+        return redirect(url_for("home"))
+    else:
+        following_list = get_following(current_user.id)
+        follower_list = get_follower(current_user.id)
+        users_base64 = get_all_users_base64()
+
+        return render_template(
+            "tweet.html",
+            following_list=[u.username for u in following_list],
+            follower_list=[u.username for u in follower_list],
+            users=users_base64,
+        )
+
+
+@app.route("/delete_tweet/<int:tweet_id>")
 def delete_tweet(tweet_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
+
     tweet = Tweet.query.get(tweet_id)
-    db.session.delete(tweet)
-    db.session.commit()
-    flash("Tweet deleted successfully")
+    if tweet and tweet.user_id == current_user.id:
+        db.session.delete(tweet)
+        db.session.commit()
+        flash("Tweet deleted successfully")
+    else:
+        flash("Tweet not found or not authorized")
+
     return redirect(url_for("home"))
+
+
+@app.route("/follow", methods=["GET", "POST"])
+def follow():
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        following_username = request.form["following"]
+        target_user = User.query.filter_by(username=following_username).first()
+
+        if target_user and target_user != current_user:
+            exists = Follow.query.filter_by(
+                follower_id=current_user.id,
+                followed_id=target_user.id
+            ).first()
+            if exists:
+                flash("Already following")
+            else:
+                new_follow = Follow(
+                    follower_id=current_user.id,
+                    followed_id=target_user.id
+                )
+                db.session.add(new_follow)
+                db.session.commit()
+                flash(f"You are now following {target_user.username}")
+        else:
+            flash("User not found or invalid")
+
+        return redirect(url_for("following"))
+
+    return render_template("textter.html")
 
 
 @app.route("/following", methods=["GET"])
 def following():
-    if request.method == "GET":
-        if "username" not in session:
-            return redirect(url_for("login"))
-        following_list = get_following()
-        follower_list = get_follower()
-        users = get_user()
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
 
-        return render_template(
-            "following.html",
-            users=users,
-            following_list=following_list,
-            follower_list=follower_list,
-        )
-    else:
-        return redirect("/")
+    following_list = get_following(current_user.id)
+    follower_list = get_follower(current_user.id)
+    users_base64 = get_all_users_base64()
+
+    return render_template(
+        "following.html",
+        users=users_base64,
+        following_list=[u.username for u in following_list],
+        follower_list=[u.username for u in follower_list],
+    )
 
 
-@app.route("/delete_following/<following_id>")
-def delete_following(following_id):
-    if request.method == "GET":
-        if "username" not in session:
-            return redirect(url_for("login"))
-        following = Follow.query.filter_by(username=session["username"]).first()
+@app.route("/delete_following/<string:following_username>")
+def delete_following(following_username):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
 
-        following_list = following.following.split(",")
-        following_list.remove(following_id)
-        following_list = [i for i in following_list if i]
-
-        if len(following_list) > 0:
-            following.following = ",".join(following_list)
-        else:
-            db.session.delete(following)
-
-        follower = Follower.query.filter_by(username=following_id).first()
-
-        follower_list = follower.follower.split(",")
-        follower_list.remove(session["username"])
-        follower_list = [i for i in follower_list if i]
-        if len(follower_list) > 0:
-            follower.follower = ",".join(follower_list)
-        else:
-            db.session.delete(follower)
-        db.session.commit()
-
-        return redirect(url_for("home"))
-    else:
-        return redirect("/")
+    target_user = User.query.filter_by(username=following_username).first()
+    if target_user:
+        follow_record = Follow.query.filter_by(
+            follower_id=current_user.id,
+            followed_id=target_user.id
+        ).first()
+        if follow_record:
+            db.session.delete(follow_record)
+            db.session.commit()
+            flash(f"You have unfollowed {target_user.username}")
+    return redirect(url_for("following"))
 
 
 @app.route("/follower", methods=["GET"])
 def follower():
-    if request.method == "GET":
-        if "username" not in session:
-            return redirect(url_for("login"))
-        following_list = get_following()
-        follower_list = get_follower()
-        users = get_user()
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
 
-        return render_template(
-            "follower.html",
-            users=users,
-            following_list=following_list,
-            follower_list=follower_list,
-        )
-    else:
-        return redirect("/")
+    following_list = get_following(current_user.id)
+    follower_list = get_follower(current_user.id)
+    users_base64 = get_all_users_base64()
+
+    return render_template(
+        "follower.html",
+        users=users_base64,
+        following_list=[u.username for u in following_list],
+        follower_list=[u.username for u in follower_list],
+    )
 
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run()
-    # app.run(debug=True)
+    # app.run()
+    app.run(debug=True)
