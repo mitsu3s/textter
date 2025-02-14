@@ -14,7 +14,6 @@ from flask import (
     url_for,
     flash,
     make_response,
-    get_flashed_messages,
 )
 from flask_sqlalchemy import SQLAlchemy
 from userimage import send_image
@@ -273,9 +272,9 @@ def delete_tweet(tweet_id):
     if tweet and tweet.user_id == current_user.id:
         db.session.delete(tweet)
         db.session.commit()
-        flash("Tweet deleted successfully")
-    else:
-        flash("Tweet not found or not authorized")
+    #     flash("Tweet deleted successfully", "success")
+    # else:
+    #     flash("Tweet not found or not authorized", "error")
 
     return redirect(url_for("home"))
 
@@ -304,9 +303,9 @@ def follow():
                 )
                 db.session.add(new_follow)
                 db.session.commit()
-                flash(f"You are now following {target_user.username}")
+                flash(f"You are now following {target_user.username}", "success")
         else:
-            flash("User not found or invalid")
+            flash("User not found or invalid", "error")
 
         return redirect(url_for("following"))
 
@@ -346,7 +345,7 @@ def delete_following(following_username):
         if follow_record:
             db.session.delete(follow_record)
             db.session.commit()
-            flash(f"You have unfollowed {target_user.username}")
+            flash(f"You have unfollowed {target_user.username}", "success")
     return redirect(url_for("following"))
 
 
