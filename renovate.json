@@ -1,0 +1,25 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "timezone": "Asia/Tokyo",
+    "baseBranches": ["develop"],
+    "labels": ["renovate"],
+    "packageRules": [
+        {
+            "matchUpdateTypes": ["major"],
+            "addLabels": ["major"]
+        },
+        {
+            "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
+            "addLabels": ["minor"]
+        },
+        {
+            "matchManagers": ["pip_requirements"],
+            "addLabels": ["pip"]
+        },
+        {
+            "matchManagers": ["npm"],
+            "addLabels": ["npm"]
+        }
+    ]
+}
