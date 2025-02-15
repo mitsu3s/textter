@@ -13,7 +13,7 @@
                     >
                     {% if tweet.user.username == session.username %}
                     <a
-                        href="{{ url_for('delete_tweet', tweet_id=tweet.id) }}"
+                        href="{{ url_for('tweet.delete_tweet', tweet_id=tweet.id) }}"
                         class="text-sm text-gray-500 hover:text-red-500 ml-2"
                     >
                         <svg
