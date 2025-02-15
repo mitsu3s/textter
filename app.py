@@ -4,6 +4,7 @@ import hashlib
 import secrets
 import cv2
 import base64
+import os
 
 from flask import (
     Flask,
@@ -16,12 +17,16 @@ from flask import (
     make_response,
 )
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from userimage import send_image
 
+
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///textter.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = secrets.token_bytes(16)
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 class User(db.Model):
@@ -63,7 +68,7 @@ class Tweet(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(280), nullable=False)
     text = db.Column(db.String(280), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.datetime)
 
     user = db.relationship("User", back_populates="tweets")
 
@@ -77,7 +82,7 @@ class Follow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     follower_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     followed_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.datetime)
 
     follower = db.relationship(
         "User", foreign_keys=[follower_id], back_populates="following"
