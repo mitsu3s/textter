@@ -1,32 +1,39 @@
 # Textter
 
--   A simple tweeting application modeled after X (Twitter).
+- Textter は、ただ気軽につぶやけるシンプルなアプリケーションです。
 
-## Description
+## Features
 
--   A login system manages and displays tweets for each user.
--   As soon as a user is created, a user image is generated and displayed next to the tweet.
--   There are followers and followers, and the tweets of users you follow are also displayed on the timeline.
--   TailwindCSS is used and the design is responsive.
--   This application is under development and we do not recommend using it as a reference.
+- 気軽につぶやき可能
+  余計な機能を省き、シンプルに投稿を楽しめます。
+
+- 自動生成のユーザー画像
+  ユーザー登録すると、プロフィール画像が自動で生成されます。
+
+- フォロー機能
+  ユーザー名を知っている場合のみフォローが可能です。
+  フォローすると、自分とフォローしたユーザーの投稿をタイムラインで閲覧できます。
+
+- フォロワーリストの閲覧
+  誰にフォローされているかは、いつでも確認できます。
 
 ## Requirement
 
 | Language/FrameWork | Version |
 | :----------------- | ------: |
-| Python             |  3.10.6 |
-| Flask              |   2.2.2 |
+| Python             |  3.13.2 |
+| Flask              |   3.1.0 |
 | Flask-SQLAlchemy   |   3.0.2 |
 | jinja2             |   3.1.2 |
-| SQLite             |  3.39.5 |
-| TailwindCSS        |   3.3.6 |
+| PostgresQL         |    17.3 |
+| TailwindCSS        |   3.3.1 |
 
 ## Usage
 
 ```zsh
 # Execute only during development
-$ npx tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --watch
+$ npx tailwindcss -i ./app/static/src/input.css -o ./app/static/dist/output.css --watch
 
 # Project execution
-$ python app.py
+$ python run.py
 ```
