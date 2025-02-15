@@ -2,5 +2,5 @@ import os
 
 
 class Config:
-    DATABASE_URI = os.environ.get("DATABASE_URI")
-    TRACK_MODIFICATIONS = os.environ.get("TRACK_MODIFICATIONS")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI")
+    SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("TRACK_MODIFICATIONS")
