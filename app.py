@@ -4,6 +4,7 @@ import hashlib
 import secrets
 import cv2
 import base64
+import os
 
 from flask import (
     Flask,
@@ -16,12 +17,16 @@ from flask import (
     make_response,
 )
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from userimage import send_image
 
+
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///textter.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = secrets.token_bytes(16)
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 class User(db.Model):
@@ -32,14 +37,16 @@ class User(db.Model):
     userimage = db.Column(db.LargeBinary)
     password_hash = db.Column(db.String(64), nullable=False)
 
-    tweets = db.relationship("Tweet", back_populates="user", cascade="all, delete-orphan", lazy=True)
+    tweets = db.relationship(
+        "Tweet", back_populates="user", cascade="all, delete-orphan", lazy=True
+    )
 
     following = db.relationship(
         "Follow",
         foreign_keys="Follow.follower_id",
         back_populates="follower",
         cascade="all, delete-orphan",
-        lazy=True
+        lazy=True,
     )
 
     followers = db.relationship(
@@ -47,7 +54,7 @@ class User(db.Model):
         foreign_keys="Follow.followed_id",
         back_populates="followed",
         cascade="all, delete-orphan",
-        lazy=True
+        lazy=True,
     )
 
     def __repr__(self):
@@ -61,7 +68,7 @@ class Tweet(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(280), nullable=False)
     text = db.Column(db.String(280), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.datetime)
 
     user = db.relationship("User", back_populates="tweets")
 
@@ -75,10 +82,14 @@ class Follow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     follower_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     followed_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.datetime)
 
-    follower = db.relationship("User", foreign_keys=[follower_id], back_populates="following")
-    followed = db.relationship("User", foreign_keys=[followed_id], back_populates="followers")
+    follower = db.relationship(
+        "User", foreign_keys=[follower_id], back_populates="following"
+    )
+    followed = db.relationship(
+        "User", foreign_keys=[followed_id], back_populates="followers"
+    )
 
     def __repr__(self):
         return f"<Follow follower={self.follower_id} -> followed={self.followed_id}>"
@@ -87,10 +98,12 @@ class Follow(db.Model):
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
+
 def get_current_user():
     if "username" not in session:
         return None
     return User.query.filter_by(username=session["username"]).first()
+
 
 def get_following(user_id):
     user = User.query.get(user_id)
@@ -98,11 +111,13 @@ def get_following(user_id):
         return []
     return [f.followed for f in user.following]
 
+
 def get_follower(user_id):
     user = User.query.get(user_id)
     if not user:
         return []
     return [f.follower for f in user.followers]
+
 
 def get_all_users_base64():
     users = User.query.all()
@@ -116,7 +131,7 @@ def get_all_users_base64():
 
 @app.route("/", methods=["GET"])
 def index():
-    session.pop('_flashes', None)
+    session.pop("_flashes", None)
     return render_template("home.html")
 
 
@@ -137,7 +152,7 @@ def register():
         user = User(
             username=username,
             userimage=userimage,
-            password_hash=hash_password(password)
+            password_hash=hash_password(password),
         )
         db.session.add(user)
         db.session.commit()
@@ -149,7 +164,7 @@ def register():
             return response
         else:
             return redirect(url_for("home"))
-        
+
     return render_template("register.html")
 
 
@@ -176,7 +191,7 @@ def login():
     if request.method == "GET" and request.cookies.get("username"):
         session["username"] = request.cookies.get("username")
         return redirect(url_for("home"))
-    
+
     return render_template("login.html")
 
 
@@ -213,8 +228,7 @@ def home():
 
     user_ids = [current_user.id] + [u.id for u in following_users]
     tweets = (
-        Tweet.query
-        .filter(Tweet.user_id.in_(user_ids))
+        Tweet.query.filter(Tweet.user_id.in_(user_ids))
         .order_by(Tweet.created_at.desc())
         .all()
     )
@@ -272,9 +286,6 @@ def delete_tweet(tweet_id):
     if tweet and tweet.user_id == current_user.id:
         db.session.delete(tweet)
         db.session.commit()
-    #     flash("Tweet deleted successfully", "success")
-    # else:
-    #     flash("Tweet not found or not authorized", "error")
 
     return redirect(url_for("home"))
 
@@ -291,15 +302,13 @@ def follow():
 
         if target_user and target_user != current_user:
             exists = Follow.query.filter_by(
-                follower_id=current_user.id,
-                followed_id=target_user.id
+                follower_id=current_user.id, followed_id=target_user.id
             ).first()
             if exists:
                 flash("Already following")
             else:
                 new_follow = Follow(
-                    follower_id=current_user.id,
-                    followed_id=target_user.id
+                    follower_id=current_user.id, followed_id=target_user.id
                 )
                 db.session.add(new_follow)
                 db.session.commit()
@@ -339,8 +348,7 @@ def delete_following(following_username):
     target_user = User.query.filter_by(username=following_username).first()
     if target_user:
         follow_record = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=target_user.id
+            follower_id=current_user.id, followed_id=target_user.id
         ).first()
         if follow_record:
             db.session.delete(follow_record)
@@ -370,5 +378,5 @@ def follower():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run()
-    # app.run(debug=True)
+    # app.run()
+    app.run(debug=True)
